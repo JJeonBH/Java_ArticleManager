@@ -38,7 +38,7 @@ public class Main {
 				Article article = new Article(id, title, body);
 				articles.add(article);
 
-				System.out.printf("%d글이 생성되었습니다\n", id);
+				System.out.printf("%d번글이 생성되었습니다\n", id);
 
 			} else if (cmd.equals("article list")) {
 				if (articles.size() == 0) {
