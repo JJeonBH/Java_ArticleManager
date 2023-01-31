@@ -1,4 +1,4 @@
-package com.KoreaIT.java.AM;
+package com.KoreaIT.java.AM.util;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -11,5 +11,7 @@ public class Util {
 		Date time = new Date();
 
 		return format.format(time);
+
 	}
+
 }
