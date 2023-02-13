@@ -14,4 +14,5 @@ public abstract class Dao {
 	public int getNewId() {
 		return lastId + 1;
 	}
+
 }

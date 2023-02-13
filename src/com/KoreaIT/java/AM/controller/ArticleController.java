@@ -1,27 +1,26 @@
 package com.KoreaIT.java.AM.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 import com.KoreaIT.java.AM.container.Container;
 import com.KoreaIT.java.AM.dto.Article;
 import com.KoreaIT.java.AM.dto.Member;
+import com.KoreaIT.java.AM.service.ArticleService;
 import com.KoreaIT.java.AM.util.Util;
 
 public class ArticleController extends Controller {
-	private List<Article> articles;
 	private String cmd;
 	private Scanner sc;
-	private String actionMethodName;
+	private ArticleService articleService;
 
 	public ArticleController(Scanner sc) {
 		this.sc = sc;
+		this.articleService = Container.articleService;
 	}
 
 	public void doAction(String cmd, String actionMethodName) {
 		this.cmd = cmd;
-		this.actionMethodName = actionMethodName;
 
 		switch (actionMethodName) {
 		case "list":
@@ -46,19 +45,8 @@ public class ArticleController extends Controller {
 
 	}
 
-	public void makeTestData() {
-		System.out.println("테스트를 위한 게시물 데이터를 생성합니다");
-		Container.articleDao
-				.add(new Article(Container.articleDao.getNewId(), Util.getNowDateStr(), 1, "title 1", "body 1", 11));
-		Container.articleDao
-				.add(new Article(Container.articleDao.getNewId(), Util.getNowDateStr(), 2, "title 2", "body 2", 22));
-		Container.articleDao
-				.add(new Article(Container.articleDao.getNewId(), Util.getNowDateStr(), 3, "title 3", "body 3", 33));
-	}
-
 	private void doWrite() {
-
-		int id = Container.articleDao.getNewId();
+		int id = articleService.getNewId();
 
 		String regDate = Util.getNowDateStr();
 		System.out.printf("제목 : ");
@@ -67,15 +55,24 @@ public class ArticleController extends Controller {
 		String body = sc.nextLine();
 
 		Article article = new Article(id, regDate, loginedMember.id, title, body);
-		Container.articleDao.add(article);
+		articleService.add(article);
 
 		System.out.printf("%d번 글이 생성되었습니다\n", id);
 	}
 
 	private void showList() {
+		if (articleService.size() == 0) {
+			System.out.println("게시글이 없습니다");
+			return;
+		}
+
 		String searchKeyword = cmd.substring("article list".length()).trim();
 
-		List<Article> forPrintArticles = Container.articleService.getForPrintArticles(searchKeyword);
+		List<Article> forPrintArticles = articleService.getArticles(searchKeyword);
+
+		if (forPrintArticles == null) {
+			return;
+		}
 
 		System.out.println("번호    |   작성자   |  제목  |    조회");
 		for (int i = forPrintArticles.size() - 1; i >= 0; i--) {
@@ -83,7 +80,7 @@ public class ArticleController extends Controller {
 
 			String writerName = null;
 
-			List<Member> members = Container.memberDao.members;
+			List<Member> members = Container.memberService.getMembers();
 
 			for (Member member : members) {
 				if (article.memberId == member.id) {
@@ -102,7 +99,7 @@ public class ArticleController extends Controller {
 
 		int id = Integer.parseInt(cmdBits[2]);
 
-		Article foundArticle = getArticleById(id);
+		Article foundArticle = articleService.getArticleById(id);
 
 		if (foundArticle == null) {
 			System.out.printf("%d번 게시물은 존재하지 않습니다\n", id);
@@ -123,7 +120,7 @@ public class ArticleController extends Controller {
 
 		int id = Integer.parseInt(cmdBits[2]);
 
-		Article foundArticle = getArticleById(id);
+		Article foundArticle = articleService.getArticleById(id);
 
 		if (foundArticle == null) {
 			System.out.printf("%d번 게시물은 존재하지 않습니다\n", id);
@@ -151,7 +148,7 @@ public class ArticleController extends Controller {
 
 		int id = Integer.parseInt(cmdBits[2]);
 
-		Article foundArticle = getArticleById(id);
+		Article foundArticle = articleService.getArticleById(id);
 
 		if (foundArticle == null) {
 			System.out.printf("%d번 게시물은 존재하지 않습니다\n", id);
@@ -163,30 +160,12 @@ public class ArticleController extends Controller {
 			return;
 		}
 
-		articles.remove(foundArticle);
+		articleService.remove(foundArticle);
 		System.out.printf("%d번 게시물이 삭제 되었습니다\n", id);
-
 	}
 
-	private int getArticleIndexById(int id) {
-		int i = 0;
-
-		for (Article article : articles) {
-			if (article.id == id) {
-				return i;
-			}
-			i++;
-		}
-
-		return -1;
+	public void makeTestData() {
+		articleService.makeTestData();
 	}
 
-	private Article getArticleById(int id) {
-		int index = getArticleIndexById(id);
-		if (index != -1) {
-			return articles.get(index);
-		}
-
-		return null;
-	}
 }
